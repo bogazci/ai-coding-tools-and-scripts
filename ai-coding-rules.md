@@ -13,6 +13,8 @@
 - [ ] **Validation:** Inputs checked at all boundaries
 - [ ] **Comments:** Explain *why*, not just *what*
 - [ ] **Best practices:** PEP8 (Python), idiomatic code
+- [ ] **Full working pages:** no static pages when functionality is expected, no fake pages
+
 
 ---
 
