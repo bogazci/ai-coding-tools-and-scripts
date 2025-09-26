@@ -1,0 +1,36 @@
+On Ubuntu
+Install MySQL Server
+sudo apt update
+sudo apt install mysql-server -y
+
+Check MySQL Status
+sudo systemctl status mysql
+
+Start MySQL Instanz
+sudo systemctl start mysql
+
+Setup MySQL
+sudo mysql_secure_installation
+
+Login to MySQL as root
+sudo mysql -u root -p
+
+Optional: Create Admin User
+CREATE USER 'admin'@'localhost' IDENTIFIED BY 'pw';
+GRANT ALL PRIVILEGES ON *.* TO 'admin'@'localhost' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+
+Enable Remote Access (Optional & Risky)
+sudo nano /etc/mysql/mysql.conf.d/mysqld.cnf
+bind-address = 127.0.0.1
+bind-address = 0.0.0.0
+sudo systemctl restart mysql
+💡 Don't forget to allow port 3306 in your firewall if needed.
+
+Useful Admin Commands
+sudo systemctl start mysql
+sudo systemctl stop mysql
+sudo systemctl restart mysql
+mysql --version
+
+
