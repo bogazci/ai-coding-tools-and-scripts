@@ -6,6 +6,47 @@ For a one-page version to paste into prompts, see [`ai-coding-rules-quickref.md`
 
 ---
 
+## §MUST — Non-Negotiable
+
+These rules apply to **every** task in **every** project, in **every** language. They override default helpfulness. If a request conflicts with them, surface the conflict instead of silently complying.
+
+### MUST NOT ship incomplete code
+
+No `TODO` / `FIXME` / `XXX` / `HACK` left in delivered code. No `pass`, `...`, `???` as a function body. No `throw new Error("not implemented")` / `raise NotImplementedError` / `panic("todo")`. No placeholder returns (`return null /* TODO */`). No lorem-ipsum or hard-coded sample data where real data flow is in scope. No static UI screens where dynamic behavior is in scope. No commented-out blocks marked "for later". No pseudo-code in any form.
+
+If something is genuinely out of scope: **delete it and say so**. Out of scope is fine. Pretending to implement is not.
+
+### MUST catch every error
+
+Every error path is caught at a meaningful boundary. Domain-specific error types with stable codes — never raw `Error`/`Exception`. Original cause preserved through the chain (`raise … from …`, `new Error(msg, { cause })`, `errors.Wrap`). Inputs validated at every trust boundary (HTTP, queue, file, env, CLI, FFI).
+
+**Forbidden:** empty `catch`/`except: pass`/`.catch(() => {})`, exceptions silently converted to `null`/`false`/`-1`, bare `except:` / `catch (Throwable)` without re-raise or contextual log.
+
+### MUST produce two-layer error messages
+
+- **Human layer:** plain language, actionable, no stack trace, localized if the product is. *"Couldn't save your changes — the connection to the database timed out. Please retry in a moment."*
+- **Technical layer:** error code, correlation ID, stack trace, full context — logged for operators, never shown to end users.
+
+`"Error"`, `"Something went wrong"`, `"Failed"` are violations.
+
+### MUST write human-readable code
+
+Full-word identifiers (`customerInvoiceTotal`, not `cusInvTot` or `x`). Idiomatic style guide for the language (PEP 8, Effective Go, Airbnb/Standard JS, .NET, Google). Short single-purpose functions. Comments only for *why*, never *what*. No cryptic abbreviations, no Hungarian notation, no mixed conventions inside one codebase. No dead code, no commented-out blocks, no unused imports left behind.
+
+### MUST deliver senior-developer quality
+
+A senior peer would approve it in code review without rework. The most boring solution that works — no premature abstraction, no clever one-liners. Resources released on every exit path. Timeouts on every I/O call. Idempotency for retryable operations. **No fix without a failing test first.** Structured logging only — no `print`/`console.log` in shipped paths. No secrets in code, logs, fixtures, error messages, or commit history.
+
+### MUST NOT bypass quality gates
+
+No `--no-verify`, no skipped pre-commit hooks, no disabled CI checks to make a commit pass. No broad lint/type suppressions (`# type: ignore`, `// @ts-ignore`, `eslint-disable`) without a one-line justification on the same line. No force-push to shared branches, no amending already-pushed commits. If a check fails: **fix the cause**.
+
+### MUST surface ambiguity
+
+If a requirement is ambiguous, if scope conflicts with these rules, or if the answer requires information not available — **ask** or state the assumption explicitly. Silent guessing is a violation.
+
+---
+
 ## 0. How to read this document
 
 Rules come in two layers:
@@ -84,6 +125,10 @@ The standard is the same; the surface area is not.
 - [ ] **Separation of concerns** between domain, I/O, transport, and presentation. Pure functions where possible.
 - [ ] **Comments explain *why*, never *what*.** If the *why* is obvious, omit the comment. Dead code is deleted, not commented out.
 - [ ] **Formatter and linter run automatically** with their config committed.
+- [ ] **No magic numbers or magic strings.** Name them as constants with intent-revealing names (`MAX_RETRY_ATTEMPTS = 5`, not `5`).
+- [ ] **No global mutable state.** Dependencies are injected, not reached for. Module-level singletons are a last resort, not a default.
+- [ ] **Composition over inheritance.** Reach for inheritance only when the language idiomatically requires it (e.g. extending a framework base class). Otherwise compose.
+- [ ] **Boy Scout Rule, bounded.** Leave touched files cleaner than you found them — but unrelated cleanup goes in a separate PR. Mixing refactor with feature is a review smell.
 
 ---
 
@@ -99,6 +144,8 @@ The standard is the same; the surface area is not.
 - [ ] **No empty catch.** If you intentionally ignore, log at `debug` and document why.
 - [ ] **Fail loud in development, fail safe in production.** Crash on invariant violations during dev/test; degrade gracefully in prod.
 - [ ] **Process-level safety nets** (uncaught-exception/unhandled-rejection handlers) log and exit cleanly — they do not paper over routine errors.
+- [ ] **Exceptions are for exceptional conditions, not control flow.** Expected outcomes (not-found, validation-failed, retry-needed) use explicit return types — `Result` / `Either` / error tuples / nullable returns — where the language supports them. Exceptions for "user typed wrong password" is a smell.
+- [ ] **No catch-all middleware that hides the real exception.** A top-level handler exists to translate to a user-safe response and log the technical detail — not to make errors disappear.
 
 ---
 
@@ -135,6 +182,9 @@ The standard is the same; the surface area is not.
 - [ ] **External services isolated** via fakes, contract-tested mocks, or ephemeral containers — never production or third-party prod from CI.
 - [ ] **Coverage is by *behavior*, not lines.** Critical paths reach 100%; other code is covered to the level the risk requires. Line-coverage targets are a smoke check, not the goal — chasing a number produces tests that hit lines without proving behavior.
 - [ ] **Tests run in CI on every push and PR.** Red CI blocks merge.
+- [ ] **Test names describe behavior, not implementation.** `should_return_404_when_user_not_found` beats `test_get_user_2`. A failing test name tells you what broke without reading the code.
+- [ ] **Tests follow Arrange-Act-Assert (or Given-When-Then) structure** — visibly. One logical assertion per test where practical.
+- [ ] **No conditional logic in tests** (`if`/`for`/`try`). Conditions in tests hide untested branches. Parameterize instead.
 
 ---
 
@@ -163,6 +213,7 @@ The standard is the same; the surface area is not.
 - [ ] **Time always carries a time zone.** Store UTC; display in user TZ. Never compare naïve datetimes. ISO-8601 in transit and logs.
 - [ ] **Identifiers exposed externally are opaque** (UUID/ULID) — never raw auto-increment DB IDs. Stable, non-guessable, non-enumerable.
 - [ ] **Soft vs hard deletes** chosen consciously and documented per entity.
+- [ ] **Invariants live in the database, not only in the application.** Foreign keys, `NOT NULL`, `UNIQUE`, `CHECK` constraints, and appropriate indexes are defined at the schema level. Application-only validation drifts; the database does not.
 
 ---
 
@@ -208,6 +259,7 @@ The standard is the same; the surface area is not.
 - [ ] **Transactions wrap multi-statement writes** that must be atomic. Isolation level is a conscious choice.
 - [ ] **Backups verified by restore drills**, not just by existence of backup files.
 - [ ] **PII fields** classified per §8 with retention/deletion policy enforced in code.
+- [ ] **Migrations are tested against production-shape data volume** before the release. A migration that runs in 200ms on dev seed data and 40 minutes on prod is a production incident waiting to happen.
 
 ---
 
@@ -232,6 +284,7 @@ The standard is the same; the surface area is not.
 - [ ] **Dependency adoption is deliberate.** Audit transitive size, license, and maintenance health before pulling in.
 - [ ] **License compliance** — every dependency's license recorded; copyleft licenses reviewed before adoption; project's own `LICENSE` present.
 - [ ] **Update cadence** — automated dependency updates (Renovate/Dependabot) on a defined schedule. Security patches merged within 7 days.
+- [ ] **Dev / CI / prod runtime parity.** Same OS family, same major language version, same key library versions across environments — ideally via the same container image. "Works on my machine" is a process failure, not an excuse.
 
 ---
 
