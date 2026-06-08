@@ -992,3 +992,13 @@ https://yavuz-mggj7w5e-eastus2.services.ai.azure.com/anthropic/v1/messages
 gpt-5.2
 https://yavuz-mggj7w5e-eastus2.openai.azure.com/openai/responses?api-version=2025-04-01-preview
 7F0pP8mCr4CsEtwI4jqXVBN4NvJ8hsEn04AQtFeUGkhIPVSuOa6vJQQJ99BJACHYHv6XJ3w3AAAAACOGlsAI
+
+
+opus 4.8
+https://yavuz-mggj7w5e-eastus2.services.ai.azure.com/anthropic/v1/messages
+7F0pP8mCr4CsEtwI4jqXVBN4NvJ8hsEn04AQtFeUGkhIPVSuOa6vJQQJ99BJACHYHv6XJ3w3AAAAACOGlsAI
+
+Rate limit (Tokens per minute)
+40.000
+Rate limit (Requests per minute)
+40
