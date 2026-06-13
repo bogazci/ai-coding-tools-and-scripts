@@ -1,0 +1,13 @@
+
+==== Subscription: Silver Sponsorship Credit ====
+  ✓ ybopenai (YAB-Test): 11 Modelle -> text-embedding-ada-002, gpt-4o, gpt-5-mini, text-embedding-3-large, gpt-5-nano, gpt-4.1, gpt-4.1-mini, dall-e-3, DeepSeek-V3.2, DeepSeek-R1, gpt-5.4
+  ✓ yavuz-mggj7w5e-eastus2 (yab-test): 8 Modelle -> gpt-oss-120b, gpt-5.2, gpt-4o-mini-tts, claude-opus-4-5, claude-opus-4-7, claude-sonnet-4-6, gpt-image-1.5, claude-opus-4-8
+  ✓ yavuz-m4tobvdx-northcentralus (yab-test): 3 Modelle -> whisper, text-embedding-3-large, Meta-Llama-3.1-405B-Instruct
+
+================ ZUSAMMENFASSUNG ================
+  ✓ Erfolgreich (mit Keys):   3
+  ⚠ Erfolgreich (ohne Keys):  0
+  ○ Ohne Deployments:         0
+  ✗ Fehlgeschlagen:           0
+  Σ Exportierte Modelle:      22
+  Dateien: aiservices_models_20260613_083701.csv | aiservices_models_20260613_083701.json | aiservices_models_20260613_083701.env | aiservices_models_20260613_083701.log
