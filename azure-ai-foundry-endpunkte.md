@@ -1002,3 +1002,20 @@ Rate limit (Tokens per minute)
 40.000
 Rate limit (Requests per minute)
 40
+
+==grok-4.3==
+Target URI
+https://ybopenai.services.ai.azure.com/models/chat/completions?api-version=2024-05-01-preview
+
+Use parameter model = "grok-4.3" to use this deployment in your request to use this deployment. Learn about model deployment routing .
+Authentication type
+key adfa35bb16a349e7bb1fe60839d41758
+
+==DeepSeek-V4-Pro==
+Endpoint
+Target URI
+https://ybopenai.services.ai.azure.com/models/chat/completions?api-version=2024-05-01-preview
+
+Use parameter model = "DeepSeek-V4-Pro" to use this deployment in your request to use this deployment. Learn about model deployment routing .
+Authentication type
+Key adfa35bb16a349e7bb1fe60839d41758
