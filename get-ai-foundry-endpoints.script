@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+set -uo pipefail
+
+TS=$(date +%Y%m%d_%H%M%S)
+BASE="aiservices_models_${TS}"
+OUT="${BASE}.csv"; JSONOUT="${BASE}.json"; ENVF="${BASE}.env"; LOG="${BASE}.log"
+JSONL="${BASE}.jsonl.tmp"
+APIVER="2024-10-21"
+
+echo '"model","deployment","url","token","token2","model_version","model_format","deployment_type","capacity","state","account","resource_group","subscription","location","base_endpoint","status"' > "$OUT"
+: > "$JSONL"
+echo "# AIServices Model Export  ($TS)" > "$ENVF"
+OK=0; WARN=0; FAIL=0; EMPTY=0; MODELS=0
+: > "$LOG"
+log(){ echo "$1" | tee -a "$LOG"; }
+
+for SUB in $(az account list --query "[?state=='Enabled'].id" -o tsv); do
+  az account set -s "$SUB" 2>/dev/null
+  SUBNAME=$(az account show --query name -o tsv)
+  log ""; log "==== Subscription: $SUBNAME ===="
+
+  while read -r ACC; do
+    [ -z "$ACC" ] && continue
+    N=$(jq -r '.n' <<<"$ACC"); RG=$(jq -r '.rg' <<<"$ACC")
+    LOC=$(jq -r '.loc' <<<"$ACC"); EP=$(jq -r '.ep // ""' <<<"$ACC")
+    OAI="https://${N}.openai.azure.com"
+
+    KEYS=$(az cognitiveservices account keys list -n "$N" -g "$RG" -o json 2>/tmp/yb_kerr)
+    if [ $? -eq 0 ]; then
+      K1=$(jq -r '.key1 // ""' <<<"$KEYS"); K2=$(jq -r '.key2 // ""' <<<"$KEYS"); KEYSTATE="OK"
+    else
+      K1=""; K2=""; KEYSTATE="KEINE_KEYS"
+    fi
+
+    DEP=$(az cognitiveservices account deployment list -n "$N" -g "$RG" -o json 2>/tmp/yb_derr)
+    if [ $? -ne 0 ]; then
+      REASON=$(tr '\n' ' ' </tmp/yb_derr | cut -c1-200)
+      jq -rn --arg n "$N" --arg rg "$RG" --arg s "$SUBNAME" --arg loc "$LOC" \
+             --arg ep "$EP" --arg k1 "$K1" --arg k2 "$K2" --arg st "DEPLOY_FEHLER: $REASON" \
+        '["","","",$k1,$k2,"","","","","",$n,$rg,$s,$loc,$ep,$st]|@csv' >> "$OUT"
+      log "  ✗ $N ($RG): Deployments-Abruf fehlgeschlagen -> $REASON"
+      FAIL=$((FAIL+1)); continue
+    fi
+
+    COUNT=$(jq 'length' <<<"$DEP"); NAMES=$(jq -r '[.[].name]|join(", ")' <<<"$DEP")
+    if [ "$COUNT" -eq 0 ]; then
+      jq -rn --arg n "$N" --arg rg "$RG" --arg s "$SUBNAME" --arg loc "$LOC" \
+             --arg ep "$EP" --arg k1 "$K1" --arg k2 "$K2" --arg st "KEINE_DEPLOYMENTS" \
+        '["","","",$k1,$k2,"","","","","",$n,$rg,$s,$loc,$ep,$st]|@csv' >> "$OUT"
+      log "  ○ $N ($RG): keine Deployments"; EMPTY=$((EMPTY+1)); continue
+    fi
+
+    STATUS=$([ "$KEYSTATE" = "OK" ] && echo "OK" || echo "OK_OHNE_KEYS")
+
+    # --- CSV ---
+    jq -r --arg n "$N" --arg rg "$RG" --arg s "$SUBNAME" --arg loc "$LOC" \
+          --arg ep "$EP" --arg oai "$OAI" --arg k1 "$K1" --arg k2 "$K2" --arg st "$STATUS" '
+      .[] | [ .properties.model.name, .name, ($oai+"/openai/deployments/"+.name),
+        $k1,$k2, .properties.model.version, .properties.model.format, .sku.name,
+        (.sku.capacity // ""), .properties.provisioningState,
+        $n,$rg,$s,$loc,$ep,$st ]|@csv' <<<"$DEP" >> "$OUT"
+
+    # --- JSON (eine Zeile pro Modell, am Ende zu Array) ---
+    jq -c --arg n "$N" --arg rg "$RG" --arg s "$SUBNAME" --arg loc "$LOC" \
+          --arg ep "$EP" --arg oai "$OAI" --arg k1 "$K1" --arg k2 "$K2" \
+          --arg st "$STATUS" --arg av "$APIVER" '
+      .[] | {
+        model: .properties.model.name, deployment: .name,
+        url: ($oai+"/openai/deployments/"+.name),
+        base_endpoint: $oai, api_version: $av,
+        token: $k1, token2: $k2,
+        model_version: .properties.model.version, model_format: .properties.model.format,
+        deployment_type: .sku.name, capacity: .sku.capacity,
+        state: .properties.provisioningState,
+        account: $n, resource_group: $rg, subscription: $s, location: $loc, status: $st
+      }' <<<"$DEP" >> "$JSONL"
+
+    # --- .env Blöcke ---
+    jq -r --arg n "$N" --arg oai "$OAI" --arg k1 "$K1" --arg av "$APIVER" '
+      .[] |
+      (($n + "_" + .name) | ascii_upcase | gsub("[^A-Z0-9]";"_")) as $k |
+      "\n# " + $n + " / " + .name + " (" + (.properties.model.name // "") + ")\n" +
+      "AZURE_OPENAI_ENDPOINT_"    + $k + "=" + $oai + "\n" +
+      "AZURE_OPENAI_DEPLOYMENT_"  + $k + "=" + .name + "\n" +
+      "AZURE_OPENAI_API_KEY_"     + $k + "=" + $k1 + "\n" +
+      "AZURE_OPENAI_API_VERSION_" + $k + "=" + $av
+    ' <<<"$DEP" >> "$ENVF"
+
+    MODELS=$((MODELS+COUNT))
+    if [ "$KEYSTATE" = "OK" ]; then log "  ✓ $N ($RG): $COUNT Modelle -> $NAMES"; OK=$((OK+1))
+    else log "  ⚠ $N ($RG): $COUNT Modelle -> $NAMES  (Keys nicht lesbar)"; WARN=$((WARN+1)); fi
+
+  done < <(az cognitiveservices account list \
+             --query "[?kind=='AIServices'].{n:name,rg:resourceGroup,loc:location,ep:properties.endpoint}" \
+             -o json | jq -c '.[]')
+done
+
+# JSONL -> sauberes JSON-Array
+jq -s '.' "$JSONL" > "$JSONOUT" && rm -f "$JSONL"
+
+log ""
+log "================ ZUSAMMENFASSUNG ================"
+log "  ✓ Erfolgreich (mit Keys):   $OK"
+log "  ⚠ Erfolgreich (ohne Keys):  $WARN"
+log "  ○ Ohne Deployments:         $EMPTY"
+log "  ✗ Fehlgeschlagen:           $FAIL"
+log "  Σ Exportierte Modelle:      $MODELS"
+log "  Dateien: $OUT | $JSONOUT | $ENVF | $LOG"
