@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
 set -uo pipefail
-
 TS=$(date +%Y%m%d_%H%M%S)
 BASE="aiservices_models_${TS}"
 OUT="${BASE}.csv"; JSONOUT="${BASE}.json"; ENVF="${BASE}.env"; LOG="${BASE}.log"
-JSONL="${BASE}.jsonl.tmp"
-APIVER="2024-10-21"
+JSONL="${BASE}.jsonl.tmp"; APIVER="2024-10-21"
 
 echo '"model","deployment","url","token","token2","model_version","model_format","deployment_type","capacity","state","account","resource_group","subscription","location","base_endpoint","status"' > "$OUT"
 : > "$JSONL"
@@ -28,9 +26,7 @@ for SUB in $(az account list --query "[?state=='Enabled'].id" -o tsv); do
     KEYS=$(az cognitiveservices account keys list -n "$N" -g "$RG" -o json 2>/tmp/yb_kerr)
     if [ $? -eq 0 ]; then
       K1=$(jq -r '.key1 // ""' <<<"$KEYS"); K2=$(jq -r '.key2 // ""' <<<"$KEYS"); KEYSTATE="OK"
-    else
-      K1=""; K2=""; KEYSTATE="KEINE_KEYS"
-    fi
+    else K1=""; K2=""; KEYSTATE="KEINE_KEYS"; fi
 
     DEP=$(az cognitiveservices account deployment list -n "$N" -g "$RG" -o json 2>/tmp/yb_derr)
     if [ $? -ne 0 ]; then
@@ -38,8 +34,7 @@ for SUB in $(az account list --query "[?state=='Enabled'].id" -o tsv); do
       jq -rn --arg n "$N" --arg rg "$RG" --arg s "$SUBNAME" --arg loc "$LOC" \
              --arg ep "$EP" --arg k1 "$K1" --arg k2 "$K2" --arg st "DEPLOY_FEHLER: $REASON" \
         '["","","",$k1,$k2,"","","","","",$n,$rg,$s,$loc,$ep,$st]|@csv' >> "$OUT"
-      log "  ✗ $N ($RG): Deployments-Abruf fehlgeschlagen -> $REASON"
-      FAIL=$((FAIL+1)); continue
+      log "  ✗ $N ($RG): Deployments-Abruf fehlgeschlagen -> $REASON"; FAIL=$((FAIL+1)); continue
     fi
 
     COUNT=$(jq 'length' <<<"$DEP"); NAMES=$(jq -r '[.[].name]|join(", ")' <<<"$DEP")
@@ -49,7 +44,6 @@ for SUB in $(az account list --query "[?state=='Enabled'].id" -o tsv); do
         '["","","",$k1,$k2,"","","","","",$n,$rg,$s,$loc,$ep,$st]|@csv' >> "$OUT"
       log "  ○ $N ($RG): keine Deployments"; EMPTY=$((EMPTY+1)); continue
     fi
-
     STATUS=$([ "$KEYSTATE" = "OK" ] && echo "OK" || echo "OK_OHNE_KEYS")
 
     # --- CSV ---
@@ -60,39 +54,32 @@ for SUB in $(az account list --query "[?state=='Enabled'].id" -o tsv); do
         (.sku.capacity // ""), .properties.provisioningState,
         $n,$rg,$s,$loc,$ep,$st ]|@csv' <<<"$DEP" >> "$OUT"
 
-    # --- JSON (eine Zeile pro Modell, am Ende zu Array) ---
+    # --- JSON ---
     jq -c --arg n "$N" --arg rg "$RG" --arg s "$SUBNAME" --arg loc "$LOC" \
           --arg ep "$EP" --arg oai "$OAI" --arg k1 "$K1" --arg k2 "$K2" \
           --arg st "$STATUS" --arg av "$APIVER" '
-      .[] | {
-        model: .properties.model.name, deployment: .name,
-        url: ($oai+"/openai/deployments/"+.name),
-        base_endpoint: $oai, api_version: $av,
-        token: $k1, token2: $k2,
-        model_version: .properties.model.version, model_format: .properties.model.format,
-        deployment_type: .sku.name, capacity: .sku.capacity,
-        state: .properties.provisioningState,
+      .[] | { model: .properties.model.name, deployment: .name,
+        url: ($oai+"/openai/deployments/"+.name), base_endpoint: $oai, api_version: $av,
+        token: $k1, token2: $k2, model_version: .properties.model.version,
+        model_format: .properties.model.format, deployment_type: .sku.name,
+        capacity: .sku.capacity, state: .properties.provisioningState,
         account: $n, resource_group: $rg, subscription: $s, location: $loc, status: $st
       }' <<<"$DEP" >> "$JSONL"
 
-    # --- .env Blöcke ---
+    # --- .env ---
     jq -r --arg n "$N" --arg oai "$OAI" --arg k1 "$K1" --arg av "$APIVER" '
-      .[] |
-      (($n + "_" + .name) | ascii_upcase | gsub("[^A-Z0-9]";"_")) as $k |
+      .[] | (($n + "_" + .name) | ascii_upcase | gsub("[^A-Z0-9]";"_")) as $k |
       "\n# " + $n + " / " + .name + " (" + (.properties.model.name // "") + ")\n" +
       "AZURE_OPENAI_ENDPOINT_"    + $k + "=" + $oai + "\n" +
       "AZURE_OPENAI_DEPLOYMENT_"  + $k + "=" + .name + "\n" +
       "AZURE_OPENAI_API_KEY_"     + $k + "=" + $k1 + "\n" +
-      "AZURE_OPENAI_API_VERSION_" + $k + "=" + $av
-    ' <<<"$DEP" >> "$ENVF"
+      "AZURE_OPENAI_API_VERSION_" + $k + "=" + $av' <<<"$DEP" >> "$ENVF"
 
     # --- Konsole: displayname | url | token ---
-    jq -r --arg n "$N" --arg oai "$OAI" --arg k1 "$K1" '
-      .[] |
-      "── " + (.properties.model.name // .name) + "\n" +
+    jq -r --arg oai "$OAI" --arg k1 "$K1" '
+      .[] | "── " + (.properties.model.name // .name) + "\n" +
       "   url:   " + ($oai+"/openai/deployments/"+.name) + "\n" +
-      "   token: " + (if $k1=="" then "(kein Zugriff)" else $k1 end)
-    ' <<<"$DEP"
+      "   token: " + (if $k1=="" then "(kein Zugriff)" else $k1 end)' <<<"$DEP"
 
     MODELS=$((MODELS+COUNT))
     if [ "$KEYSTATE" = "OK" ]; then log "  ✓ $N ($RG): $COUNT Modelle -> $NAMES"; OK=$((OK+1))
@@ -103,9 +90,7 @@ for SUB in $(az account list --query "[?state=='Enabled'].id" -o tsv); do
              -o json | jq -c '.[]')
 done
 
-# JSONL -> sauberes JSON-Array
 jq -s '.' "$JSONL" > "$JSONOUT" && rm -f "$JSONL"
-
 log ""
 log "================ ZUSAMMENFASSUNG ================"
 log "  ✓ Erfolgreich (mit Keys):   $OK"
