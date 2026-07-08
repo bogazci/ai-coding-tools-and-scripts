@@ -86,6 +86,14 @@ for SUB in $(az account list --query "[?state=='Enabled'].id" -o tsv); do
       "AZURE_OPENAI_API_VERSION_" + $k + "=" + $av
     ' <<<"$DEP" >> "$ENVF"
 
+    # --- Konsole: displayname | url | token ---
+    jq -r --arg n "$N" --arg oai "$OAI" --arg k1 "$K1" '
+      .[] |
+      "── " + (.properties.model.name // .name) + "\n" +
+      "   url:   " + ($oai+"/openai/deployments/"+.name) + "\n" +
+      "   token: " + (if $k1=="" then "(kein Zugriff)" else $k1 end)
+    ' <<<"$DEP"
+
     MODELS=$((MODELS+COUNT))
     if [ "$KEYSTATE" = "OK" ]; then log "  ✓ $N ($RG): $COUNT Modelle -> $NAMES"; OK=$((OK+1))
     else log "  ⚠ $N ($RG): $COUNT Modelle -> $NAMES  (Keys nicht lesbar)"; WARN=$((WARN+1)); fi
