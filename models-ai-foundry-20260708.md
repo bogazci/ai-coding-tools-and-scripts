@@ -1,0 +1,73 @@
+── text-embedding-ada-002
+   url:   https://ybopenai.openai.azure.com/openai/deployments/text-embedding-ada-002
+   token: adfa35bb16a349e7bb1fe60839d41758
+── gpt-5.1
+   url:   https://ybopenai.openai.azure.com/openai/deployments/gpt-4o
+   token: adfa35bb16a349e7bb1fe60839d41758
+── gpt-5-mini
+   url:   https://ybopenai.openai.azure.com/openai/deployments/gpt-5-mini
+   token: adfa35bb16a349e7bb1fe60839d41758
+── text-embedding-3-large
+   url:   https://ybopenai.openai.azure.com/openai/deployments/text-embedding-3-large
+   token: adfa35bb16a349e7bb1fe60839d41758
+── gpt-5-nano
+   url:   https://ybopenai.openai.azure.com/openai/deployments/gpt-5-nano
+   token: adfa35bb16a349e7bb1fe60839d41758
+── gpt-4.1
+   url:   https://ybopenai.openai.azure.com/openai/deployments/gpt-4.1
+   token: adfa35bb16a349e7bb1fe60839d41758
+── gpt-4.1-mini
+   url:   https://ybopenai.openai.azure.com/openai/deployments/gpt-4.1-mini
+   token: adfa35bb16a349e7bb1fe60839d41758
+── dall-e-3
+   url:   https://ybopenai.openai.azure.com/openai/deployments/dall-e-3
+   token: adfa35bb16a349e7bb1fe60839d41758
+── DeepSeek-V3.2
+   url:   https://ybopenai.openai.azure.com/openai/deployments/DeepSeek-V3.2
+   token: adfa35bb16a349e7bb1fe60839d41758
+── DeepSeek-R1
+   url:   https://ybopenai.openai.azure.com/openai/deployments/DeepSeek-R1
+   token: adfa35bb16a349e7bb1fe60839d41758
+── gpt-5.4
+   url:   https://ybopenai.openai.azure.com/openai/deployments/gpt-5.4
+   token: adfa35bb16a349e7bb1fe60839d41758
+── DeepSeek-V4-Pro
+   url:   https://ybopenai.openai.azure.com/openai/deployments/DeepSeek-V4-Pro
+   token: adfa35bb16a349e7bb1fe60839d41758
+── grok-4.3
+   url:   https://ybopenai.openai.azure.com/openai/deployments/grok-4.3
+   token: adfa35bb16a349e7bb1fe60839d41758
+── gpt-oss-120b
+   url:   https://yavuz-mggj7w5e-eastus2.openai.azure.com/openai/deployments/gpt-oss-120b
+   token: 7F0pP8mCr4CsEtwI4jqXVBN4NvJ8hsEn04AQtFeUGkhIPVSuOa6vJQQJ99BJACHYHv6XJ3w3AAAAACOGlsAI
+── gpt-5.2
+   url:   https://yavuz-mggj7w5e-eastus2.openai.azure.com/openai/deployments/gpt-5.2
+   token: 7F0pP8mCr4CsEtwI4jqXVBN4NvJ8hsEn04AQtFeUGkhIPVSuOa6vJQQJ99BJACHYHv6XJ3w3AAAAACOGlsAI
+── gpt-4o-mini-tts
+   url:   https://yavuz-mggj7w5e-eastus2.openai.azure.com/openai/deployments/gpt-4o-mini-tts
+   token: 7F0pP8mCr4CsEtwI4jqXVBN4NvJ8hsEn04AQtFeUGkhIPVSuOa6vJQQJ99BJACHYHv6XJ3w3AAAAACOGlsAI
+── claude-opus-4-5
+   url:   https://yavuz-mggj7w5e-eastus2.openai.azure.com/openai/deployments/claude-opus-4-5
+   token: 7F0pP8mCr4CsEtwI4jqXVBN4NvJ8hsEn04AQtFeUGkhIPVSuOa6vJQQJ99BJACHYHv6XJ3w3AAAAACOGlsAI
+── claude-opus-4-7
+   url:   https://yavuz-mggj7w5e-eastus2.openai.azure.com/openai/deployments/claude-opus-4-7
+   token: 7F0pP8mCr4CsEtwI4jqXVBN4NvJ8hsEn04AQtFeUGkhIPVSuOa6vJQQJ99BJACHYHv6XJ3w3AAAAACOGlsAI
+── claude-sonnet-4-6
+   url:   https://yavuz-mggj7w5e-eastus2.openai.azure.com/openai/deployments/claude-sonnet-4-6
+   token: 7F0pP8mCr4CsEtwI4jqXVBN4NvJ8hsEn04AQtFeUGkhIPVSuOa6vJQQJ99BJACHYHv6XJ3w3AAAAACOGlsAI
+── gpt-image-1.5
+   url:   https://yavuz-mggj7w5e-eastus2.openai.azure.com/openai/deployments/gpt-image-1.5
+   token: 7F0pP8mCr4CsEtwI4jqXVBN4NvJ8hsEn04AQtFeUGkhIPVSuOa6vJQQJ99BJACHYHv6XJ3w3AAAAACOGlsAI
+── claude-opus-4-8
+   url:   https://yavuz-mggj7w5e-eastus2.openai.azure.com/openai/deployments/claude-opus-4-8
+   token: 7F0pP8mCr4CsEtwI4jqXVBN4NvJ8hsEn04AQtFeUGkhIPVSuOa6vJQQJ99BJACHYHv6XJ3w3AAAAACOGlsAI
+── whisper
+   url:   https://yavuz-m4tobvdx-northcentralus.openai.azure.com/openai/deployments/whisper
+   token: EwmNrUxUrmJncfG1Ac6d2ulFYzYeQOtk4DhRmxA3fcMUilYwMlqTJQQJ99ALACHrzpqXJ3w3AAAAACOGBgPR
+── text-embedding-3-large
+   url:   https://yavuz-m4tobvdx-northcentralus.openai.azure.com/openai/deployments/text-embedding-3-large
+   token: EwmNrUxUrmJncfG1Ac6d2ulFYzYeQOtk4DhRmxA3fcMUilYwMlqTJQQJ99ALACHrzpqXJ3w3AAAAACOGBgPR
+── Meta-Llama-3.1-405B-Instruct
+   url:   https://yavuz-m4tobvdx-northcentralus.openai.azure.com/openai/deployments/Meta-Llama-3.1-405B-Instruct
+   token: EwmNrUxUrmJncfG1Ac6d2ulFYzYeQOtk4DhRmxA3fcMUilYwMlqTJQQJ99ALACHrzpqXJ3w3AAAAACOGBgPR
+yavuz [ ~ ]$ 
