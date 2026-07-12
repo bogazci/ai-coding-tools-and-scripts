@@ -70,4 +70,6 @@
 ── Meta-Llama-3.1-405B-Instruct
    url:   https://yavuz-m4tobvdx-northcentralus.openai.azure.com/openai/deployments/Meta-Llama-3.1-405B-Instruct
    token: EwmNrUxUrmJncfG1Ac6d2ulFYzYeQOtk4DhRmxA3fcMUilYwMlqTJQQJ99ALACHrzpqXJ3w3AAAAACOGBgPR
-yavuz [ ~ ]$ 
+-- gpt-5.6-sol
+ url: https://ybopenai.openai.azure.com/openai/responses?api-version=2025-04-01-preview
+ token: adfa35bb16a349e7bb1fe60839d41758
